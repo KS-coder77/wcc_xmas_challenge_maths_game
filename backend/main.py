@@ -1,32 +1,36 @@
 from flask import request, jsonify
 from config import app, db
-from models import Student
+# from models import Student
+import random
 
 
-@app.route("/students", methods=["GET"])
-def get_students():
-    students = Student.query.all()
-    json_students = list(map(lambda x: x.to_json(), students))
-    return jsonify({"students": json_students})  # convert python obj to json
+# Endpoint to get a random math question
+@app.route('/question', methods=['GET'])
+def get_question():
+    operations = ['+', '-', '*']
+    num1 = random.randint(1, 10)
+    num2 = random.randint(1, 10)
+    operation = random.choice(operations)
+
+    # Ensure no division by zero for division operation
+    if operation == '/' and num2 == 0:
+        num2 = 1
+
+    question = f"{num1} {operation} {num2}"
+    answer = eval(question)
+
+    return jsonify({'question': question, 'answer': answer})
 
 
-@app.route("/register_user", methods=["POST"])
-def register_user():
-    first_name = request.json.get("firstName")
-    last_name = request.json.get("lastName")
+# Endpoint to check the user's answer
+@app.route('/check', methods=['POST'])
+def check_answer():
+    data = request.get_json()
+    user_answer = int(data['user_answer'])
+    correct_answer = int(data['correct_answer'])
 
-    if not first_name or not last_name:
-        return (
-            jsonify({"message": "You must include a first name and last name"}),
-            400
-            )
-    new_student = Student(first_name=first_name, last_name=last_name)  # add new student
-    try:
-        db.session.add(new_student)
-        db.session.commit()
-    except Exception as e:
-        return jsonify({"message": str(e)}), 400
-    return jsonify({"message": "User created!"}), 201  # new user created
+    result = user_answer == correct_answer
+    return jsonify({'correct': result})
 
 
 # check file directly
