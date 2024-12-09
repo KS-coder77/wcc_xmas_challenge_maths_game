@@ -4,11 +4,20 @@ import { useState, useEffect } from 'react';
 import './App.css';
 
 const App = () => {
+  const [start, setSession] = useState("");
   const [question, setQuestion] = useState("");
   const [correctAnswer, setCorrectAnswer] = useState(null);
   const [userAnswer, setUserAnswer] = useState("");
   const [feedback, setFeedback] = useState("");
 
+
+  // Start a new round 
+  const startRound = async () => {
+    const response = await fetch("http://127.0.0.1:5000/start");
+    const data = await response.json();
+    setSession(data.start)
+
+  }
   // Fetch a new question from the backend
   const fetchQuestion = async () => {
     const response = await fetch("http://127.0.0.1:5000/question");
@@ -35,6 +44,7 @@ const App = () => {
   };
 
   useEffect(() => {
+    startRound();    // Start new round of questions 
     fetchQuestion(); // Fetch question on component mount
   }, []);
 
@@ -49,10 +59,13 @@ const App = () => {
           onChange={(e) => setUserAnswer(e.target.value)}
           placeholder="Your answer"
         />
+        <button type="submit">Start</button>
         <button type="submit">Submit</button>
       </form>
       <button onClick={fetchQuestion} style={{ marginTop: "20px" }}>
+      <button onClick={startRound} style={{ marginTop: "20px" }}>
         Next Question
+      </button>
       </button>
       {feedback && <h3>{feedback}</h3>}
     </div>
