@@ -1,9 +1,8 @@
 from flask import request, jsonify, session
 from config import app, db
-# from models import Student
 import random
 
-app.secret_key = 'your_secret_key'
+app.secret_key = 'hello'
 MAX_QUESTIONS = 10
 
 
@@ -23,20 +22,29 @@ def generate_question():
 
 
 # Endpoint to start the first round of the game
-@app.route('/start', methods=['POST'])
-def start_round():
+@app.route('/start', methods=['PUT'])
+def start():
     # initialise session variable
     session['question_count'] = 0
+    session['max_questions'] = 10  # set limit for questions
+    session['score'] = 0
     session['questions'] = []  # store q's for each round
+    return jsonify({'message': "Let's play!"})
 
 
 # Endpoint to get a random math question
-@app.route('/question', methods=['GET'])
+@app.route('/get_question', methods=['GET'])
 def get_question():
+    # initialise question count
     if 'question_count' not in session:
-        return jsonify({'message': 'Round not started'})
+        session['question_count'] = 0
+    if 'questions' not in session:
+        session['questions'] = []
+
+    # check if max. reached
     if session['question_count'] >= MAX_QUESTIONS:
-        return jsonify({'message': 'End of Round'})
+        return jsonify({'message': 'End of round!'})
+
     # generate a new question
     question, answer = generate_question()
     session['question_count'] += 1
@@ -58,7 +66,7 @@ def check_answer():
 @app.route('/reset_round', methods=['POST'])
 def reset_round():
     session['question_count'] = 0
-    return jsonify({'message': 'Next round'})
+    return jsonify({'message': 'Round reset successfully'})
 
 
 # check file directly
