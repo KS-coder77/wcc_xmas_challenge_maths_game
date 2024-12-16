@@ -3,7 +3,13 @@ import './App.css';
 
 
 const Game = () => {
-  const [message, setMessage] = useState("Test Message");
+  const gameStyle = {
+    background: '#FFA500',
+    // height: '100vh',
+    // width: '100vw',
+    backgroundSize: 'cover'
+  };
+  const [message, setMessage] = useState("Hello Message");
   const [question, setQuestion] = useState("");
   const [correctAnswer, setCorrectAnswer] = useState(null);
   const [questionCount, setQuestionCount] = useState(0);
@@ -11,8 +17,9 @@ const Game = () => {
   const [feedback, setFeedback] = useState("");
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
+  const [isAnswered, setIsAnswered] = useState(false);
   //const [round, setRound] = useState(1);
-  const MAX_QUESTIONS = 10;
+  const MAX_QUESTIONS = 3;
     
   // start game
   // const start = async () => {
@@ -23,23 +30,32 @@ const Game = () => {
 
   // Fetch a new question from the backend
   const fetchQuestion = async () => {
-    if (questionCount >= MAX_QUESTIONS) return; // Stop fetching if limit reached
+    if (questionCount >= MAX_QUESTIONS)
+      return; // Stop fetching if limit reached
     const response = await fetch("http://127.0.0.1:5000/get_question");
     const data = await response.json();
     if (data.gameOver) {
-      setGameOver(true);
+      setGameOver(true); // set gameover flag 
+      setMessage(data.message); //display 'end of round'
     } else { 
-      setQuestionCount(prevCount => prevCount + 1);
+      setQuestionCount(questionCount + 1);
       setQuestion(data.question);
       setCorrectAnswer(data.answer);
       setFeedback(""); // Reset feedback
-      setUserAnswer(""); // Clear input
+      setUserAnswer(""); // Clear input 
+      setIsAnswered(false);
     }
-    };
+  };
 
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // handle if empty string submitted by user 
+    if (userAnswer.trim() === "") {
+      setFeedback("Please enter a valid number");
+      return;
+  }
     const response = await fetch("http://127.0.0.1:5000/check", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -48,36 +64,40 @@ const Game = () => {
         correct_answer: correctAnswer,
       }),
     });
+
     const data = await response.json();
-    // setFeedback(data.correct ? "Correct! 🎉" : "Wrong! Try again.");
+
     if (data.correct) {
         setScore(score+1) // keep track of score 
         setFeedback("Correct! 🎉")
-        setUserAnswer(""); // Clear input
     } else {
         setFeedback("Incorrect! Try Again")
     }
+
+    setIsAnswered(true); 
+    setUserAnswer(""); // Clear input
+    }; 
+
+    const nextQuestion = () => {
+      if (isAnswered) {
+      fetchQuestion();
+      } else {
+        setFeedback("Please submit an answer before moving to the next question.")
+      }
     };
 
     useEffect(() => {
-      if (!gameOver) {fetchQuestion();
-      } 
-      else {
-        setMessage("End of round!")
-      } 
-    }, [gameOver]
-);
-
-  const nextQuestion = () => {
-    fetchQuestion();
-  }
+      if (!gameOver) {
+        fetchQuestion();
+       }  
+    }, [gameOver]);
 
    return (
-    <div style={{ textAlign: "center", padding: "20px" }}>
-      <h1>Welcome!</h1>  
+    <div style={{...gameStyle, textAlign: "center", padding: "20px"}}> 
       {/* <button onClick={start} style={{ marginTop: "20px" }}>Let's Begin</button> */}
-      <h1>Maths Game</h1>
-      <h2>Question: {questionCount} out of {MAX_QUESTIONS}: {question}</h2>   
+      <h1>Welcome to Maths Masters!</h1>
+      <h2>Question {questionCount} out of {MAX_QUESTIONS}: </h2> 
+      <h2>{question}</h2>  
       <h4>Score: {score}</h4>
       <h5>{message}</h5>
       <form onSubmit={handleSubmit}>

@@ -3,7 +3,7 @@ from config import app, db
 import random
 
 app.secret_key = 'hello'
-MAX_QUESTIONS = 10
+MAX_QUESTIONS = 3
 
 
 # function to generate questions
@@ -12,7 +12,6 @@ def generate_question():
     num1 = random.randint(1, 10)
     num2 = random.randint(1, 10)
     operation = random.choice(operations)
-    # question_number = 1
 
 # Ensure no division by zero for division operation
     if operation == '/' and num2 == 0:
@@ -34,23 +33,24 @@ def generate_question():
     return question, answer
 
 
-# Endpoint to start the first round of the game
-# @app.route('/start', methods=['PUT'])
-# def start():
-#     # initialise session variable
-#     session['question_count'] = 0
-#     session['max_questions'] = 10  # set limit for questions
-#     session['score'] = 0
-#     session['questions'] = []  # store q's for each round
-#     return jsonify({'message': "Let's play!"})
+# # Endpoint to start the first round of the game
+@app.route('/start', methods=['PUT'])
+def start():
+    session.clear()
+    # initialise session variable
+    session['question_count'] = 0
+    session['max_questions'] = 3  # set limit for questions
+    session['score'] = 0
+    session['questions'] = []  # store q's for each round
+    return jsonify({'message': "Let's play!"})
 
 
-# Endpoint to get a random math question
+# Endpoint to get a question
 @app.route('/get_question', methods=['GET'])
 def get_question():
-    # initialise question count
+    # check and initialise session variables
     if 'question_count' not in session:
-        session['question_count'] = 0
+        session['question_count'] = 1
     if 'questions' not in session:
         session['questions'] = []
 
