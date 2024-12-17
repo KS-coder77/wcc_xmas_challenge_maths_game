@@ -33,39 +33,29 @@ def generate_question():
     return question, answer
 
 
-# # Endpoint to start the first round of the game
-@app.route('/start', methods=['PUT'])
-def start():
-    session.clear()
+# Endpoint to start the first round of the game
+@app.route('/start', methods=['POST'])
+def start_round():
+    # session.clear()
     # initialise session variable
     session['question_count'] = 0
-    session['max_questions'] = 3  # set limit for questions
     session['score'] = 0
+    session['max_questions'] = MAX_QUESTIONS  # set limit for questions
     session['questions'] = []  # store q's for each round
-    return jsonify({'message': "Let's play!"})
+    return jsonify({"message": "Round started!", "question_count": 0, "score": 0})
 
 
 # Endpoint to get a question
 @app.route('/get_question', methods=['GET'])
 def get_question():
-    # check and initialise session variables
-    if 'question_count' not in session:
-        session['question_count'] = 1
-    if 'questions' not in session:
-        session['questions'] = []
-
     # check if max. reached
     if session['question_count'] >= MAX_QUESTIONS:
-        return jsonify({'message': 'End of round!', 'gameOver': True})
-
+        return jsonify({'message': 'End of round!', 'gameOver': True, 'final_score': session['score']})
     # generate a new question
     question, answer = generate_question()
-
-    # update session with question and answer
-    session['question_count'] += 1
     session['questions'].append({'question': question, 'answer': answer})
-
-    return jsonify({'question': question, 'answer': answer, 'gameOver': False})
+    session['question_count'] += 1
+    return jsonify({'question_count': session['question_count'], 'question': question, 'answer': answer, 'gameOver': False})
 
 
 # Endpoint to check the user's answer
@@ -76,13 +66,21 @@ def check_answer():
     correct_answer = int(data['correct_answer'])
 
     result = user_answer == correct_answer
-    return jsonify({'correct': result})
+    if result:
+        session['score'] += 1
+        feedback = "Correct! 🎉"
+    else:
+        feedback = "Incorrect! Try again!"
+
+    return jsonify({'correct': result, 'feedback': feedback, 'current_score': session['score']})
 
 
-@app.route('/reset_round', methods=['POST'])
+@app.route('/restart_round', methods=['POST'])
 def reset_round():
+    session.clear()
     session['question_count'] = 0
-    return jsonify({'message': 'Round reset successfully'})
+    return start_round()  # call start round function
+    # jsonify({'message': 'Round reset successfully'})
 
 
 # check file directly
