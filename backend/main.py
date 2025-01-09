@@ -39,7 +39,7 @@ def start():
     session.clear()
     # initialise session variable
     session['question_count'] = 0
-    session['max_questions'] = 10  # set limit for questions
+    session['max_questions'] = MAX_QUESTIONS  # set limit for questions
     session['score'] = 0
     session['questions'] = []  # store q's for each round
     return jsonify({'message': "Let's play!"})
@@ -82,6 +82,7 @@ def check_answer():
 @app.route('/reset_round', methods=['POST'])
 def reset_round():
     session['question_count'] = 0
+    get_question()
     return jsonify({'message': 'Round reset successfully'})
 
 

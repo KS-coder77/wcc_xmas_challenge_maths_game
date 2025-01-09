@@ -25,18 +25,21 @@ const Game = () => {
   const start = async () => {
     const response = await fetch("http://127.0.0.1:5000/start");
     const data = await response.json();
+    // setGameOver(data.gameOver); // set gameover flag 
     setMessage(data.message); 
   };
 
   // Fetch a new question from the backend
   const fetchQuestion = async () => {
     if (questionCount >= MAX_QUESTIONS)
-      return; // Stop fetching if limit reached
+      setGameOver(true);
+      // return; // Stop fetching if limit reached 
     const response = await fetch("http://127.0.0.1:5000/get_question");
     const data = await response.json();
     if (data.gameOver) {
       setGameOver(true); // set gameover flag 
       setMessage(data.message); //display 'end of round'
+      return;
     } else { 
       setQuestionCount(questionCount + 1);
       setQuestion(data.question);
@@ -46,6 +49,12 @@ const Game = () => {
       setIsAnswered(false);
     }
   };
+
+  const resetRound = async () => {
+    const response = await fetch("http://127.0.0.1:5000/reset_round");
+    const data = await response.json();
+    setMessage(data.message)
+  }
 
   // Handle form submission
   const handleSubmit = async (e) => {
@@ -78,40 +87,54 @@ const Game = () => {
     setUserAnswer(""); // Clear input
     }; 
 
-    const nextQuestion = () => {
+    const nextQuestion = () => {    
       if (isAnswered) {
-      fetchQuestion();
+        fetchQuestion();
       } else {
-        setFeedback("Please submit an answer before moving to the next question.")
+          setFeedback("Please submit an answer before moving to the next question.")
       }
     };
 
+
+    const playAgain = () => {
+      resetRound();
+    }
+
     useEffect(() => {
       if (!gameOver) {
-        // start();
-        fetchQuestion();
-       }  
+      start();
+      fetchQuestion();
+        }  
     }, [gameOver]);
 
    return (
     <div style={{...gameStyle, textAlign: "center", padding: "20px"}}> 
       {/* <button onClick={start} style={{ marginTop: "20px" }}>Let's Begin</button> */}
       <h1>Welcome to Maths Masters!</h1>
-      <h2>Question {questionCount} out of {MAX_QUESTIONS}: </h2> 
-      <h2>{question}</h2>  
-      <h4>Score: {score}</h4>
-      <h5>{message}</h5>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="number"
-          value={userAnswer}
-          onChange={(e) => setUserAnswer(e.target.value)}
-          placeholder="Enter answer"
-        />
-        <button type="submit">Submit</button>
-      </form>
-      <button onClick={nextQuestion} style={{ marginTop: "20px" }}>Next Question</button>
-      {feedback && <h3>{feedback}</h3>}
+      {gameOver ? (
+        <>
+        <h3>Game Over! Would you like to play again? </h3>
+        <button onClick={playAgain} style={{ marginTop: "20px" }}>Yes</button>
+        </>
+      ) : ( 
+        <> 
+          <h2>Question {questionCount} out of {MAX_QUESTIONS}: </h2> 
+          <h2>{question}</h2>  
+          <h4>Score: {score}</h4>
+          <h5>{message}</h5>
+          <form onSubmit={handleSubmit}>
+            <input
+              type="number"
+              value={userAnswer}
+              onChange={(e) => setUserAnswer(e.target.value)}
+              placeholder="Enter answer"
+            />
+            <button type="submit">Submit</button>
+          </form>
+          <button onClick={nextQuestion} style={{ marginTop: "20px" }}>Next Question</button>
+          {feedback && <h3>{feedback}</h3>}
+        </>
+      )}
     </div>
   );
 };
