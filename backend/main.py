@@ -3,21 +3,27 @@ from config import app, db
 import random
 
 app.secret_key = 'hello'
-MAX_QUESTIONS = 10
+MAX_QUESTIONS = 3
 
 
 # function to generate questions
 def generate_question():
     operations = ['+', '-', '*', '/']
+    operation = random.choice(operations)
     num1 = random.randint(1, 10)
     num2 = random.randint(1, 10)
-    operation = random.choice(operations)
 
-# Ensure no division by zero for division operation
-    if operation == '/' and num2 == 0:
-        num2 = 1
-
-    # question_number += 1
+# Ensure larger number is divided by smaller number for division operation
+    if operation == '/' and num2 > num1:
+        num1 = num2
+        num2 = num1
+# Ensure smaller number is subtracted from larger number
+    elif operation == '-' and num2 > num1:
+        num1 = num2
+        num2 = num1
+# Change * to X
+    elif operation == '*':
+        operation = 'x'
     question = f"{num1} {operation} {num2}"
 
     # Safely compute the answer
@@ -25,24 +31,24 @@ def generate_question():
         answer = num1 + num2
     elif operation == '-':
         answer = num1 - num2
-    elif operation == '*':
+    elif operation == 'x':
         answer = num1 * num2
     elif operation == '/':
         answer = round(num1 / num2, 2)
-    # answer = eval(question)
+
     return question, answer
 
 
 # Endpoint to start the first round of the game
-@app.route('/start', methods=['PUT'])
+@app.route('/start', methods=['GET'])
 def start():
-    session.clear()
+    # session.clear()
     # initialise session variable
     session['question_count'] = 0
     session['max_questions'] = MAX_QUESTIONS  # set limit for questions
     session['score'] = 0
     session['questions'] = []  # store q's for each round
-    return jsonify({'message': "Let's play!"})
+    return jsonify({'gameOver': False})
 
 
 # Endpoint to get a question
@@ -65,7 +71,7 @@ def get_question():
     session['question_count'] += 1
     session['questions'].append({'question': question, 'answer': answer})
 
-    return jsonify({'question': question, 'answer': answer, 'gameOver': False})
+    return jsonify({'question': question, 'answer': answer})
 
 
 # Endpoint to check the user's answer
@@ -79,11 +85,18 @@ def check_answer():
     return jsonify({'correct': result})
 
 
-@app.route('/reset_round', methods=['POST'])
+@app.route('/reset_round', methods=['GET'])
 def reset_round():
-    session['question_count'] = 0
+    # session['question_count'] = 0
+    session.clear()
+    start()
     get_question()
-    return jsonify({'message': 'Round reset successfully'})
+    return jsonify({'message': 'Round reset successfully', 'gameOver': False})
+
+
+@app.route('/exit', methods=['GET'])
+def exit_game():
+    return jsonify({'message': 'Thanks for playing!'})
 
 
 # check file directly

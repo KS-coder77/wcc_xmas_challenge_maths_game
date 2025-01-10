@@ -19,19 +19,19 @@ const Game = () => {
   const [gameOver, setGameOver] = useState(false);
   const [isAnswered, setIsAnswered] = useState(false);
   //const [round, setRound] = useState(1);
-  const MAX_QUESTIONS = 10;
+  const MAX_QUESTIONS = 3;
     
   // start game
   const start = async () => {
     const response = await fetch("http://127.0.0.1:5000/start");
     const data = await response.json();
-    // setGameOver(data.gameOver); // set gameover flag 
-    setMessage(data.message); 
+    setGameOver(data.gameOver); // set gameover flag 
+    //  setMessage(data.message); 
   };
 
   // Fetch a new question from the backend
   const fetchQuestion = async () => {
-    if (questionCount >= MAX_QUESTIONS)
+    if (questionCount == MAX_QUESTIONS)
       setGameOver(true);
       // return; // Stop fetching if limit reached 
     const response = await fetch("http://127.0.0.1:5000/get_question");
@@ -47,6 +47,7 @@ const Game = () => {
       setFeedback(""); // Reset feedback
       setUserAnswer(""); // Clear input 
       setIsAnswered(false);
+      // setMessage("")
     }
   };
 
@@ -56,6 +57,11 @@ const Game = () => {
     setMessage(data.message)
   }
 
+  const exitRound = async () => {
+    const response = await fetch("http://127.0.0.1:5000/exit");
+    const data = await response.json();
+    setMessage(data.message)
+  }
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -95,15 +101,18 @@ const Game = () => {
       }
     };
 
-
     const playAgain = () => {
       resetRound();
+    }
+
+    const exit = () => {
+      exitRound();
     }
 
     useEffect(() => {
       if (!gameOver) {
       start();
-      fetchQuestion();
+      // fetchQuestion();
         }  
     }, [gameOver]);
 
@@ -111,10 +120,12 @@ const Game = () => {
     <div style={{...gameStyle, textAlign: "center", padding: "20px"}}> 
       {/* <button onClick={start} style={{ marginTop: "20px" }}>Let's Begin</button> */}
       <h1>Welcome to Maths Masters!</h1>
+      <button onClick={fetchQuestion} style={{ marginTop: "20px" }}>Let&apos;s Play!</button>
       {gameOver ? (
         <>
-        <h3>Game Over! Would you like to play again? </h3>
-        <button onClick={playAgain} style={{ marginTop: "20px" }}>Yes</button>
+        <h3>Game Over! You scored {score} out of {questionCount} </h3>
+        <button onClick={playAgain} style={{ marginTop: "20px" }}>Play Again</button>
+        <button onClick={exit} style={{ marginTop: "20px" }}>Exit</button>
         </>
       ) : ( 
         <> 
