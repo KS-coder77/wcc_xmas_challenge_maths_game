@@ -24,6 +24,10 @@ def generate_question():
 # Change * to X
     elif operation == '*':
         operation = 'x'
+    # question = f"{num1} {operation} {num2}"
+# Change / to ÷
+    elif operation == '/':
+        operation = '÷'
     question = f"{num1} {operation} {num2}"
 
     # Safely compute the answer
@@ -61,7 +65,7 @@ def get_question():
         session['questions'] = []
 
     # check if max. reached
-    if session['question_count'] >= MAX_QUESTIONS:
+    if session['question_count'] == MAX_QUESTIONS:
         return jsonify({'message': 'End of round!', 'gameOver': True})
 
     # generate a new question
@@ -85,7 +89,8 @@ def check_answer():
     return jsonify({'correct': result})
 
 
-@app.route('/reset_round', methods=['GET'])
+# Endpoint to reset the round
+@app.route('/reset_round', methods=['POST'])
 def reset_round():
     # session['question_count'] = 0
     session.clear()
@@ -94,6 +99,7 @@ def reset_round():
     return jsonify({'message': 'Round reset successfully', 'gameOver': False})
 
 
+# Endpoint to exit the game
 @app.route('/exit', methods=['GET'])
 def exit_game():
     return jsonify({'message': 'Thanks for playing!'})

@@ -31,15 +31,15 @@ const Game = () => {
 
   // Fetch a new question from the backend
   const fetchQuestion = async () => {
-    if (questionCount == MAX_QUESTIONS)
-      setGameOver(true);
-      // return; // Stop fetching if limit reached 
     const response = await fetch("http://127.0.0.1:5000/get_question");
     const data = await response.json();
-    if (data.gameOver) {
-      setGameOver(true); // set gameover flag 
-      setMessage(data.message); //display 'end of round'
-      return;
+    if (questionCount == MAX_QUESTIONS){
+      setGameOver(true);
+      setMessage("End of round")
+    // return; // Stop fetching if limit reached 
+    // if (data.gameOver) {
+      // setGameOver(true); // set gameover flag 
+      // return;
     } else { 
       setQuestionCount(questionCount + 1);
       setQuestion(data.question);
@@ -101,13 +101,13 @@ const Game = () => {
       }
     };
 
-    const playAgain = () => {
-      resetRound();
-    }
+    // const playAgain = () => {
+    //   resetRound();
+    // }
 
-    const exit = () => {
-      exitRound();
-    }
+    // const exit = () => {
+    //   exitRound();
+    // }
 
     useEffect(() => {
       if (!gameOver) {
@@ -124,8 +124,9 @@ const Game = () => {
       {gameOver ? (
         <>
         <h3>Game Over! You scored {score} out of {questionCount} </h3>
-        <button onClick={playAgain} style={{ marginTop: "20px" }}>Play Again</button>
-        <button onClick={exit} style={{ marginTop: "20px" }}>Exit</button>
+        <h5>{message}</h5>
+        <button onClick={resetRound} style={{ marginTop: "20px" }}>Play Again</button>
+        <button onClick={exitRound} style={{ marginTop: "20px" }}>Exit</button>
         </>
       ) : ( 
         <> 
